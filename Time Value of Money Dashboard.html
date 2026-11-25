@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Time Value of Money Dashboard</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#14213d;--mute:#5b6577;--line:#e3e8f0;--a:#2563eb;--b:#10b981;--c:#f59e0b;--d:#8b5cf6;--soft:#eef3ff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#161e2e;--ink:#e8edf6;--mute:#93a0b5;--line:#26324a;--a:#5b9bff;--b:#34d399;--c:#fbbf24;--d:#a78bfa;--soft:#1b2640;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#161e2e;--ink:#e8edf6;--mute:#93a0b5;--line:#26324a;--a:#5b9bff;--b:#34d399;--c:#fbbf24;--d:#a78bfa;--soft:#1b2640;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 48px}
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+h1{margin:0;font-size:26px;letter-spacing:-.4px}header p{margin:2px 0 0;color:var(--mute)}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);padding:4px;border-radius:12px}
+.tabs button{border:0;background:none;color:var(--mute);padding:8px 14px;border-radius:9px;font:600 14px inherit;cursor:pointer}
+.tabs button.on{background:var(--a);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.row{display:flex;gap:8px;align-items:center}
+input[type=number],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);font:600 15px inherit}
+input[type=range]{width:100%;accent-color:var(--a);margin-top:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px}
+.kpi{border-left:4px solid var(--a)}.kpi:nth-child(2){border-color:var(--b)}.kpi:nth-child(3){border-color:var(--c)}.kpi:nth-child(4){border-color:var(--d)}
+.kpi span{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.kpi b{display:block;font-size:26px;margin-top:4px;letter-spacing:-.5px}.kpi small{color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:16px}.ch{position:relative;height:290px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--mute);padding:6px 13px;border-radius:99px;font:600 13px inherit;cursor:pointer}
+.chip.on{background:var(--soft);color:var(--a);border-color:var(--a)}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px;min-width:460px}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}
+th{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.insight{background:var(--soft);border-radius:12px;padding:14px 16px;margin-bottom:16px}.insight b{color:var(--a)}
+.panel{display:none}.panel.on{display:block}
+footer{color:var(--mute);font-size:13px;text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Time Value of Money Dashboard</h1><p>Future value, present value and scenario analysis · Investment growth model</p></div>
+  <div class="tabs" id="tabs">
+    <button class="on" data-t="fv">Future Value</button><button data-t="pv">Present Value</button><button data-t="cmp">PV vs FV</button>
+  </div>
+</header>
+
+<div class="card controls">
+  <div><label>Initial investment (₹)</label><input type="number" id="amt" value="100000" min="1000" step="1000"></div>
+  <div><label>Annual rate: <span id="rv">10</span>%</label><input type="range" id="rate" min="1" max="20" step="0.5" value="10"></div>
+  <div><label>Period: <span id="yv">5</span> years</label><input type="range" id="yrs" min="1" max="30" step="1" value="5"></div>
+  <div><label>Compounding</label><select id="cmpd"><option value="1">Annually</option><option value="2">Semi-annually</option><option value="4">Quarterly</option><option value="12">Monthly</option></select></div>
+</div>
+
+<div class="chips" id="chips"><label style="margin:0 6px 0 0">Scenarios</label></div>
+
+<section class="panel on" id="fv">
+  <div class="kpis" id="k1"></div>
+  <div class="insight" id="i1"></div>
+  <div class="grid">
+    <div class="card"><h2>Growth over time: principal vs interest</h2><div class="ch"><canvas id="c1"></canvas></div></div>
+    <div class="card"><h2>Scenario comparison: future value</h2><div class="ch"><canvas id="c2"></canvas></div></div>
+  </div>
+  <div class="card"><h2>Year-by-year schedule</h2><div class="scroll"><table id="t1"></table></div></div>
+</section>
+
+<section class="panel" id="pv">
+  <div class="card controls" style="margin-bottom:16px"><div><label>Target future amount (₹)</label><input type="number" id="tgt" value="200000" min="1000" step="1000"></div></div>
+  <div class="kpis" id="k2"></div>
+  <div class="insight" id="i2"></div>
+  <div class="grid">
+    <div class="card"><h2>Present value by discount rate</h2><div class="ch"><canvas id="c3"></canvas></div></div>
+    <div class="card"><h2>Scenario comparison: present value</h2><div class="ch"><canvas id="c4"></canvas></div></div>
+  </div>
+</section>
+
+<section class="panel" id="cmp">
+  <div class="kpis" id="k3"></div>
+  <div class="insight" id="i3"></div>
+  <div class="grid">
+    <div class="card"><h2>Same amount: grows (FV) vs discounted (PV)</h2><div class="ch"><canvas id="c5"></canvas></div></div>
+    <div class="card"><h2>Summary table</h2><div class="scroll"><table id="t2"></table></div></div>
+  </div>
+</section>
+<footer>Built from the Excel model “pv_and_fv.xlsx” · Formulas: FV = P(1 + r/m)^(mn) · PV = FV / (1 + r/m)^(mn)</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const SC=[{n:'Conservative',r:.07,y:5},{n:'Base Case',r:.10,y:5},{n:'Optimistic',r:.12,y:5},{n:'Long Term',r:.10,y:10}];
+let active=new Set(SC.map(s=>s.n)),charts={};
+const $=id=>document.getElementById(id);
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const FV=(p,r,y,m)=>p*Math.pow(1+r/m,m*y), PV=(f,r,y,m)=>f/Math.pow(1+r/m,m*y);
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const st=()=>({p:+$('amt').value||0,r:+$('rate').value/100,y:+$('yrs').value,m:+$('cmpd').value,t:+$('tgt').value||0});
+const kpi=(a)=>a.map(([l,v,s])=>`<div class="card kpi"><span>${l}</span><b>${v}</b><small>${s}</small></div>`).join('');
+
+function draw(id,cfg){
+  if(charts[id])charts[id].destroy();
+  const tx=css('--mute'),gr=css('--line');
+  cfg.options={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tx}}},
+    scales:{x:{ticks:{color:tx},grid:{display:false},stacked:cfg.stacked},y:{ticks:{color:tx,callback:v=>'₹'+(v>=1e5?(v/1e5).toFixed(1)+'L':v)},grid:{color:gr},stacked:cfg.stacked}},...cfg.options};
+  charts[id]=new Chart($(id),cfg);
+}
+function render(){
+  const {p,r,y,m,t}=st(), A=css('--a'),B=css('--b'),C=css('--c'),D=css('--d');
+  $('rv').textContent=(r*100).toFixed(1).replace('.0','');$('yv').textContent=y;
+  const sc=SC.filter(s=>active.has(s.n)), mode=['Annually','Semi-annually','Quarterly','Monthly'][[1,2,4,12].indexOf(m)];
+  // Future value
+  const f=FV(p,r,y,m), gain=f-p;
+  $('k1').innerHTML=kpi([['Initial investment',inr(p),'Principal invested'],['Future value',inr(f),`After ${y} yrs at ${(r*100).toFixed(1)}%`],['Total interest earned',inr(gain),mode+' compounding'],['Investment growth',(p?gain/p*100:0).toFixed(1)+'%',p?(f/p).toFixed(2)+'× your money':'']]);
+  const dbl=r>0?72/(r*100):0;
+  $('i1').innerHTML=`<b>Insight:</b> ${inr(p)} grows to <b>${inr(f)}</b> in ${y} years, earning ${inr(gain)} in interest. By the Rule of 72, your money doubles roughly every <b>${dbl.toFixed(1)} years</b>. ${y>=10?'Long horizons let compounding do most of the work.':'Extending the period would sharply boost returns.'}`;
+  const yrs=[...Array(y+1).keys()], bal=yrs.map(i=>FV(p,r,i,m));
+  draw('c1',{type:'bar',stacked:true,data:{labels:yrs.map(i=>'Yr '+i),datasets:[{label:'Principal',data:yrs.map(()=>p),backgroundColor:A},{label:'Interest',data:bal.map(b=>b-p),backgroundColor:B}]}});
+  draw('c2',{type:'bar',data:{labels:sc.map(s=>`${s.n} (${s.r*100}%, ${s.y}y)`),datasets:[{label:'Future value',data:sc.map(s=>FV(p,s.r,s.y,m)),backgroundColor:[A,B,C,D]}]},options:{plugins:{legend:{display:false}}}});
+  $('t1').innerHTML='<tr><th>Year</th><th>Opening</th><th>Interest</th><th>Closing</th></tr>'+yrs.slice(1).map(i=>`<tr><td>${i}</td><td>${inr(bal[i-1])}</td><td>${inr(bal[i]-bal[i-1])}</td><td><b>${inr(bal[i])}</b></td></tr>`).join('');
+  // Present value
+  const pv=PV(t,r,y,m);
+  $('k2').innerHTML=kpi([['Target future value',inr(t),`Needed in ${y} years`],['Present value',inr(pv),'Invest today'],['Total discount',inr(t-pv),'Value lost to time'],['Discount factor',(pv/t||0).toFixed(4),`At ${(r*100).toFixed(1)}%`]]);
+  $('i2').innerHTML=`<b>Insight:</b> To have ${inr(t)} in ${y} years at ${(r*100).toFixed(1)}%, you need <b>${inr(pv)}</b> today. A higher discount rate lowers today’s value of the same future cash.`;
+  const rates=[.07,.10,.12];
+  draw('c3',{type:'line',data:{labels:yrs.map(i=>'Yr '+i),datasets:rates.map((q,i)=>({label:q*100+'%',data:yrs.map(k=>PV(t,q,k,m)),borderColor:[A,B,C][i],tension:.3,pointRadius:0,borderWidth:2.5}))}});
+  draw('c4',{type:'bar',data:{labels:sc.map(s=>s.n),datasets:[{label:'Present value',data:sc.map(s=>PV(t,s.r,s.y,m)),backgroundColor:[A,B,C,D]}]},options:{plugins:{legend:{display:false}}}});
+  // Compare
+  const pb=PV(p,r,y,m);
+  $('k3').innerHTML=kpi([['Base amount',inr(p),`${(r*100).toFixed(1)}% · ${y} yrs`],['Present value',inr(pb),'Discounted back'],['Future value',inr(f),'Compounded forward'],['FV ÷ PV',(pb?f/pb:0).toFixed(2)+'×','Time-value gap']]);
+  $('i3').innerHTML=`<b>Insight:</b> ${inr(p)} is worth <b>${inr(f)}</b> in ${y} years if invested, but only <b>${inr(pb)}</b> today if received ${y} years from now. Money today is worth more than money later.`;
+  draw('c5',{type:'line',data:{labels:yrs.map(i=>'Yr '+i),datasets:[{label:'Future value',data:bal,borderColor:B,backgroundColor:B+'22',fill:true,tension:.3,borderWidth:2.5},{label:'Present value',data:yrs.map(k=>PV(p,r,k,m)),borderColor:C,backgroundColor:C+'22',fill:true,tension:.3,borderWidth:2.5}]}});
+  $('t2').innerHTML=`<tr><th>Metric</th><th>PV</th><th>FV</th></tr><tr><td>Base amount</td><td>${inr(p)}</td><td>${inr(p)}</td></tr><tr><td>Rate</td><td>${(r*100).toFixed(1)}%</td><td>${(r*100).toFixed(1)}%</td></tr><tr><td>Period</td><td>${y} yrs</td><td>${y} yrs</td></tr><tr><td>Compounding</td><td>${mode}</td><td>${mode}</td></tr><tr><td><b>Final amount</b></td><td><b>${inr(pb)}</b></td><td><b>${inr(f)}</b></td></tr>`;
+}
+$('chips').insertAdjacentHTML('beforeend',SC.map(s=>`<button class="chip on" data-n="${s.n}">${s.n}</button>`).join(''));
+$('chips').onclick=e=>{const n=e.target.dataset.n;if(!n)return;
+  if(active.has(n)&&active.size>1){active.delete(n);e.target.classList.remove('on')}else if(!active.has(n)){active.add(n);e.target.classList.add('on')}render()};
+$('tabs').onclick=e=>{const t=e.target.dataset.t;if(!t)return;
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b===e.target));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id===t));
+  $('chips').style.display=t==='cmp'?'none':'flex';render()};
+['amt','rate','yrs','cmpd','tgt'].forEach(i=>$(i).addEventListener('input',render));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+render();
+</script>
+</body>
+</html>
